@@ -44,24 +44,22 @@ class LightMap {
 			ShaderProgram shader = shadowShader;
 			if (RayHandler.isDiffuse) {
 				shader = diffuseShader;
-				shader.begin();
+				shader.bind();
 				rayHandler.diffuseBlendFunc.apply();
 				shader.setUniformf("ambient", c.r, c.g, c.b, c.a);
 			} else {
-				shader.begin();
+				shader.bind();
 				rayHandler.shadowBlendFunc.apply();
 				shader.setUniformf("ambient", c.r * c.a, c.g * c.a,
 						c.b * c.a, 1f - c.a);
 			}
 		//	shader.setUniformi("u_texture", 0);
 			lightMapMesh.render(shader, GL20.GL_TRIANGLE_FAN);
-			shader.end();
 		} else if (needed) {
 			rayHandler.simpleBlendFunc.apply();
-			withoutShadowShader.begin();
+			withoutShadowShader.bind();
 		//	withoutShadowShader.setUniformi("u_texture", 0);
 			lightMapMesh.render(withoutShadowShader, GL20.GL_TRIANGLE_FAN);
-			withoutShadowShader.end();
 		}
 
 		Gdx.gl20.glDisable(GL20.GL_BLEND);
