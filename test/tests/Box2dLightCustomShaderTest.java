@@ -1,6 +1,7 @@
 package tests;
 
 import box2dLight.*;
+import box2dLight.base.BaseLight;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
@@ -119,7 +120,7 @@ public class Box2dLightCustomShaderTest extends InputAdapter implements Applicat
 		rayHandler = new RayHandler(world, Gdx.graphics.getWidth(), Gdx.graphics.getHeight()) {
 			@Override protected void updateLightShader () {}
 
-			@Override protected void updateLightShaderPerLight (Light light) {
+			@Override protected void updateLightShaderPerLight (BaseLight light) {
 				// light position must be normalized
 				float x = (light.getX())/viewportWidth;
 				float y = (light.getY())/viewportHeight;

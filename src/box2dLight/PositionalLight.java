@@ -1,4 +1,3 @@
-
 package box2dLight;
 
 import com.badlogic.gdx.graphics.Color;
@@ -13,31 +12,31 @@ import com.badlogic.gdx.physics.box2d.Body;
 
 /**
  * Abstract base class for all positional lights
- * 
+ *
  * <p>Extends {@link Light}
- * 
+ *
  * @author kalle_h
  */
 public abstract class PositionalLight extends Light {
 
 	protected final Vector2 tmpEnd = new Vector2();
 	protected final Vector2 start = new Vector2();
-	
+
 	protected Body body;
 	protected float bodyOffsetX;
 	protected float bodyOffsetY;
 	protected float bodyAngleOffset;
-	
+
 	protected float sin[];
 	protected float cos[];
 
 	protected float endX[];
 	protected float endY[];
-	
-	/** 
+
+	/**
 	 * Creates new positional light and automatically adds it to the specified
 	 * {@link RayHandler} instance.
-	 * 
+	 *
 	 * @param rayHandler
 	 *            not null instance of RayHandler
 	 * @param rays
@@ -52,58 +51,58 @@ public abstract class PositionalLight extends Light {
 	 * @param y
 	 *            vertical position in world coordinates
 	 * @param directionDegree
-	 *            direction in degrees (if applicable) 
+	 *            direction in degrees (if applicable)
 	 */
-	public PositionalLight(RayHandler rayHandler, int rays, Color color, float distance, float x, float y, float directionDegree) {
+	public PositionalLight (RayHandler rayHandler, int rays, Color color, float distance, float x, float y, float directionDegree) {
 		super(rayHandler, rays, color, distance, directionDegree);
 		start.x = x;
 		start.y = y;
 
 		lightMesh = new Mesh(VertexDataType.VertexArray, false, vertexNum, 0, new VertexAttribute(Usage.Position, 2,
-			"vertex_positions"), new VertexAttribute(Usage.ColorPacked, 4, "quad_colors"),
-			new VertexAttribute(Usage.Generic, 1, "s"));
+				"vertex_positions"), new VertexAttribute(Usage.ColorPacked, 4, "quad_colors"),
+				new VertexAttribute(Usage.Generic, 1, "s"));
 		softShadowMesh = new Mesh(VertexDataType.VertexArray, false, vertexNum * 2, 0, new VertexAttribute(Usage.Position, 2,
-			"vertex_positions"), new VertexAttribute(Usage.ColorPacked, 4, "quad_colors"),
-			new VertexAttribute(Usage.Generic, 1, "s"));
+				"vertex_positions"), new VertexAttribute(Usage.ColorPacked, 4, "quad_colors"),
+				new VertexAttribute(Usage.Generic, 1, "s"));
 		setMesh();
 	}
-	
+
 	@Override
-	void update() {
+	public void update() {
 		updateBody();
-		
+
 		if (cull()) return;
 		if (staticLight && !dirty) return;
-		
+
 		dirty = false;
 		updateMesh();
 	}
-	
-	@Override
-	void render() {
-		if (rayHandler.culling && culled) return;
 
-		rayHandler.lightRenderedLastFrame++;
+	@Override
+	public void render() {
+		if (lightHandler.isCulling() && culled) return;
+
+		lightHandler.lightsRenderedLastFrame++;
 		lightMesh.render(
-			rayHandler.lightShader, GL20.GL_TRIANGLE_FAN, 0, vertexNum);
-		
+				lightHandler.lightShader, GL20.GL_TRIANGLE_FAN, 0, vertexNum);
+
 		if (soft && !xray) {
 			softShadowMesh.render(
-				rayHandler.lightShader,
-				GL20.GL_TRIANGLE_STRIP,
-				0,
-				(vertexNum - 1) * 2);
+					lightHandler.lightShader,
+					GL20.GL_TRIANGLE_STRIP,
+					0,
+					(vertexNum - 1) * 2);
 		}
 	}
-	
+
 	@Override
 	public void attachToBody(Body body) {
 		attachToBody(body, 0f, 0f, 0f);
 	}
-	
+
 	/**
 	 * Attaches light to specified body with relative offset
-	 * 
+	 *
 	 * @param body
 	 *            that will be automatically followed, note that the body
 	 *            rotation angle is taken into account for the light offset
@@ -112,15 +111,15 @@ public abstract class PositionalLight extends Light {
 	 *            horizontal relative offset in world coordinates
 	 * @param offsetY
 	 *            vertical relative offset in world coordinates
-	 * 
+	 *
 	 */
 	public void attachToBody(Body body, float offsetX, float offsetY) {
 		attachToBody(body, offsetX, offsetY, 0f);
 	}
-	
+
 	/**
 	 * Attaches light to specified body with relative offset and direction
-	 * 
+	 *
 	 * @param body
 	 *            that will be automatically followed, note that the body
 	 *            rotation angle is taken into account for the light offset
@@ -130,7 +129,7 @@ public abstract class PositionalLight extends Light {
 	 * @param offsetY
 	 *            vertical relative offset in world coordinates
 	 * @param degrees
-	 *            directional relative offset in degrees 
+	 *            directional relative offset in degrees
 	 */
 	public void attachToBody(Body body, float offsetX, float offsetY, float degrees) {
 		this.body = body;
@@ -199,26 +198,26 @@ public abstract class PositionalLight extends Light {
 		}
 		return oddNodes;
 	}
-	
+
 	@Override
 	protected void setRayNum(int rays) {
 		super.setRayNum(rays);
-		
+
 		sin = new float[rays];
 		cos = new float[rays];
 		endX = new float[rays];
 		endY = new float[rays];
 	}
-	
+
 	protected boolean cull() {
-		culled = rayHandler.culling && !rayHandler.intersect(
-					start.x, start.y, distance + softShadowLength);
+		culled = lightHandler.isCulling() && !lightHandler.intersect(
+				start.x, start.y, distance + softShadowLength);
 		return culled;
 	}
-	
+
 	protected void updateBody() {
 		if (body == null || staticLight) return;
-		
+
 		final Vector2 vec = body.getPosition();
 		float angle = body.getAngle();
 		final float cos = MathUtils.cos(angle);
@@ -229,7 +228,7 @@ public abstract class PositionalLight extends Light {
 		start.y = vec.y + dY;
 		setDirection(bodyAngleOffset + angle * MathUtils.radiansToDegrees);
 	}
-	
+
 	protected void updateMesh() {
 		for (int i = 0; i < rayNum; i++) {
 			m_index = i;
@@ -238,8 +237,8 @@ public abstract class PositionalLight extends Light {
 			mx[i] = tmpEnd.x;
 			tmpEnd.y = endY[i] + start.y;
 			my[i] = tmpEnd.y;
-			if (rayHandler.world != null && !xray) {
-				rayHandler.world.rayCast(ray, start, tmpEnd);
+			if (lightHandler.getWorld() != null && !xray) {
+				lightHandler.getWorld().rayCast(ray, start, tmpEnd);
 			}
 		}
 		setMesh();

@@ -76,7 +76,7 @@ public class ChainLight extends Light {
  	 *            </ul>
  	 */
 	public ChainLight(RayHandler rayHandler, int rays, Color color,
-			float distance, int rayDirection) {
+					  float distance, int rayDirection) {
 		this(rayHandler, rays, color, distance, rayDirection, null);
 	}
 
@@ -103,7 +103,7 @@ public class ChainLight extends Light {
 	 *            evenly distributed
 	 */
 	public ChainLight(RayHandler rayHandler, int rays, Color color,
-			float distance, int rayDirection, float[] chain) {
+					  float distance, int rayDirection, float[] chain) {
 		
 		super(rayHandler, rays, color, distance, 0f);
 		rayStartOffset = ChainLight.defaultRayStartOffset;
@@ -147,15 +147,15 @@ public class ChainLight extends Light {
 	
 	@Override
 	public void render() {
-		if (rayHandler.culling && culled) return;
+		if (lightHandler.isCulling() && culled) return;
 		
-		rayHandler.lightRenderedLastFrame++;
+		lightHandler.lightsRenderedLastFrame++;
 		lightMesh.render(
-			rayHandler.lightShader, GL20.GL_TRIANGLE_STRIP, 0, vertexNum);
+				lightHandler.lightShader, GL20.GL_TRIANGLE_STRIP, 0, vertexNum);
 		
 		if (soft && !xray) {
 			softShadowMesh.render(
-				rayHandler.lightShader, GL20.GL_TRIANGLE_STRIP, 0, vertexNum);
+					lightHandler.lightShader, GL20.GL_TRIANGLE_STRIP, 0, vertexNum);
 		}
 	}
 	
@@ -269,7 +269,7 @@ public class ChainLight extends Light {
 	 */
 	@Override
 	public void setDistance(float dist) {
-		dist *= RayHandler.gammaCorrectionParameter;
+		dist *= gammaCorrectionValue;
 		this.distance = dist < 0.01f ? 0.01f : dist;
 		dirty = true;
 	}
@@ -403,7 +403,7 @@ public class ChainLight extends Light {
 	}
 	
 	protected boolean cull() {
-		if (!rayHandler.culling) {
+		if (!lightHandler.isCulling()) {
 			culled = false;
 		} else {
 			updateBoundingRects();
@@ -448,8 +448,8 @@ public class ChainLight extends Light {
 			my[i] = tmpEnd.y;
 			tmpStart.x = startX[i];
 			tmpStart.y = startY[i];
-			if (rayHandler.world != null && !xray) {
-				rayHandler.world.rayCast(ray, tmpStart, tmpEnd);
+			if (lightHandler.getWorld() != null && !xray) {
+				lightHandler.getWorld().rayCast(ray, tmpStart, tmpEnd);
 			}
 		}
 		setMesh();
@@ -506,8 +506,8 @@ public class ChainLight extends Light {
 		}
 		chainLightBounds.set(minX, minY, maxX - minX, maxY - minY);
 		rayHandlerBounds.set(
-			rayHandler.x1, rayHandler.y1,
-			rayHandler.x2 - rayHandler.x1, rayHandler.y2 - rayHandler.y1);
+				lightHandler.x1, lightHandler.y1,
+				lightHandler.x2 - lightHandler.x1, lightHandler.y2 - lightHandler.y1);
 	}
 	
 }
