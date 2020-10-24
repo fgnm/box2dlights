@@ -37,9 +37,6 @@ public class RayHandler implements Disposable {
 	 */
 	static int CIRCLE_APPROX_POINTS = 32;
 
-	public static int DYNAMIC_SHADOW_COLOR_REDUCTION = 1;
-	static int MAX_SHADOW_VERTICES = 64;
-
 	/** if this is public why we have a setter?
 	 * TODO: remove public modifier and add getter 
 	 * */
@@ -344,6 +341,11 @@ public class RayHandler implements Disposable {
 			} else {
 				lightMap.frameBuffer.end();
 			}
+
+			boolean needed = lightRenderedLastFrame > 0;
+			// this way lot less binding
+			if (needed && blur)
+				lightMap.gaussianBlur();
 		}
 	}
 
